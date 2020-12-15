@@ -1,0 +1,18 @@
+aws elbv2 create-load-balancer --name sasha --type application --scheme internet-facing --subnets subnet-0a6af481af075ef54 subnet-0e75d2c7d04ddb99c
+aws ec2 create-security-group --group-name sasha1 --description sasha1
+aws ec2 authorize-security-group-ingress --group-id sg-00c169f179b3bbcc7 --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws elbv2 set-security-groups --load-balancer-arn arn:aws:elasticloadbalancing:us-east-2:070071391564:loadbalancer/app/sasha/dda48cfd5f630381 --security-groups sg-00c169f179b3bbcc7
+
+aws ec2 run-instances --image-id ami-04d29b6f966df1537 --count 1 --instance-type t2.micro --key-name MyKeyPair --associate-public-ip-address --security-group-ids sg-00c169f179b3bbcc7 --user-data file://u1.sh
+aws ec2 run-instances --image-id ami-04d29b6f966df1537 --count 1 --instance-type t2.micro --key-name MyKeyPair --subnet-id subnet-0e75d2c7d04ddb99c --associate-public-ip-address --security-group-ids sg-00c169f179b3bbcc7 --user-data file://u2.sh
+
+aws elbv2 create-target-group --name sashko --target-type instance --protocol HTTP --port 80 --vpc-id vpc-a6a31ecd
+
+aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-2:070071391564:targetgroup/sashko/80ef07052ad5bb3f --targets Id=i-0af936d89df160a49 Id=i-00eeb2e67404e14b7
+
+aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-2:070071391564:loadbalancer/app/sasha/dda48cfd5f630381 --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-2:070071391564:targetgroup/sashko/80ef07052ad5bb3f
+
+
+
+
+sasha-1811293544.us-east-2.elb.amazonaws.com
